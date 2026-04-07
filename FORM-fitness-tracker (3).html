@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FORM">
+<title>FORM — Adam's Fitness OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070707;
+    --surface: #111111;
+    --surface2: #181818;
+    --surface3: #202020;
+    --border: #242424;
+    --border2: #2e2e2e;
+    --accent: #d4f53c;
+    --accent-dim: rgba(212,245,60,0.1);
+    --accent-border: rgba(212,245,60,0.25);
+    --orange: #ff9500;
+    --orange-dim: rgba(255,149,0,0.1);
+    --blue: #4da6ff;
+    --blue-dim: rgba(77,166,255,0.1);
+    --red: #ff453a;
+    --green: #30d158;
+    --text: #ffffff;
+    --text2: #aaaaaa;
+    --muted: #555555;
+    --muted2: #333333;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { background:#070707; color:#ffffff; color-scheme:dark; }
+  body { background:#070707 !important; color:#ffffff !important; font-family:'DM Sans',sans-serif; min-height:100vh; overscroll-behavior:none; }
+  input, button, select, textarea { color-scheme:dark; font-family:'DM Sans',sans-serif; }
+
+  /* NAV */
+  .nav { position:fixed; bottom:0; left:0; right:0; background:rgba(7,7,7,0.97); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border-top:1px solid var(--border); display:flex; z-index:100; padding-bottom:env(safe-area-inset-bottom); }
+  .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; padding:10px 4px 8px; cursor:pointer; transition:color 0.15s; color:var(--muted); border:none; background:none; font-family:'DM Mono',monospace; font-size:0.52rem; letter-spacing:0.08em; gap:4px; text-transform:uppercase; }
+  .nav-btn.active { color:var(--accent); }
+  .nav-icon { font-size:1.1rem; line-height:1; }
+
+  /* SCREENS */
+  .screen { display:none; padding:20px 16px; padding-bottom:calc(85px + env(safe-area-inset-bottom)); padding-top:calc(16px + env(safe-area-inset-top)); min-height:100vh; background:#070707 !important; animation:fadeIn 0.2s ease; }
+  .screen.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(4px);} to{opacity:1;transform:translateY(0);} }
+
+  /* TYPE */
+  .page-title { font-family:'Bebas Neue',sans-serif; font-size:2.2rem; letter-spacing:0.05em; line-height:1; color:var(--accent); margin-bottom:3px; }
+  .page-sub { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; margin-bottom:20px; }
+  .section-label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.18em; color:var(--muted); text-transform:uppercase; margin-bottom:8px; margin-top:20px; }
+
+  /* CARDS */
+  .card { background:#111111 !important; border:1px solid var(--border); padding:16px; margin-bottom:12px; color:#ffffff; }
+  .card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+  .card-title { font-family:'Bebas Neue',sans-serif; font-size:1.15rem; letter-spacing:0.06em; color:#ffffff; }
+
+  /* BADGES */
+  .badge { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.08em; padding:3px 8px; border:1px solid; }
+  .badge-green { color:var(--accent); border-color:var(--accent-border); background:var(--accent-dim); }
+  .badge-orange { color:var(--orange); border-color:rgba(255,149,0,0.25); background:var(--orange-dim); }
+  .badge-blue { color:var(--blue); border-color:rgba(77,166,255,0.2); background:var(--blue-dim); }
+  .badge-purple { color:#bf5fff; border-color:rgba(191,95,255,0.25); background:rgba(191,95,255,0.08); }
+
+  /* STATS */
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+  .stat-box { background:#111111 !important; border:1px solid var(--border); padding:14px; position:relative; overflow:hidden; }
+  .stat-box::before { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform 0.4s ease; }
+  .stat-box.lit::before { transform:scaleX(1); }
+  .stat-label { font-family:'DM Mono',monospace; font-size:0.56rem; letter-spacing:0.12em; color:var(--muted); text-transform:uppercase; margin-bottom:5px; }
+  .stat-val { font-family:'Bebas Neue',sans-serif; font-size:1.9rem; color:var(--accent); line-height:1; }
+  .stat-unit { font-family:'DM Mono',monospace; font-size:0.56rem; color:var(--muted); margin-top:3px; }
+
+  /* WEEK STRIP */
+  .week-strip { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:14px; }
+  .day-tile { background:#111111 !important; border:1px solid var(--border); padding:8px 4px; text-align:center; user-select:none; }
+  .day-tile.done-gym { border-color:var(--accent); background:var(--accent-dim) !important; }
+  .day-tile.done-run { border-color:var(--orange); background:var(--orange-dim) !important; }
+  .day-tile.done-home { border-color:var(--blue); background:var(--blue-dim) !important; }
+  .day-tile.today .d-num { color:var(--accent); }
+  .d-name { font-family:'DM Mono',monospace; font-size:0.5rem; color:var(--muted); letter-spacing:0.08em; margin-bottom:3px; }
+  .d-num { font-family:'Bebas Neue',sans-serif; font-size:1.2rem; line-height:1; margin-bottom:3px; color:#ffffff; }
+  .d-tag { font-family:'DM Mono',monospace; font-size:0.45rem; color:var(--muted); }
+  .day-tile.done-gym .d-tag { color:var(--accent); }
+  .day-tile.done-run .d-tag { color:var(--orange); }
+  .day-tile.done-home .d-tag { color:var(--blue); }
+
+  /* SUPERSET BLOCK */
+  .superset-block { background:#111111 !important; border:1px solid var(--border); margin-bottom:12px; overflow:hidden; }
+  .superset-header { background:#181818 !important; padding:10px 14px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .superset-label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.12em; color:var(--accent); text-transform:uppercase; }
+  .superset-sets { font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--muted); }
+
+  /* EXERCISE */
+  .ex-block { padding:12px 14px; border-bottom:1px solid var(--border); background:#111111 !important; }
+  .ex-block:last-child { border-bottom:none; }
+  .ex-block.ex-b { background:#151515 !important; }
+  .ex-connector { display:flex; align-items:center; gap:8px; padding:4px 14px; background:#181818 !important; }
+  .ex-connector-line { flex:1; height:1px; background:var(--border2); }
+  .ex-connector-text { font-family:'DM Mono',monospace; font-size:0.55rem; color:var(--accent); letter-spacing:0.1em; }
+  .ex-name { font-size:0.88rem; font-weight:600; color:#ffffff; margin-bottom:2px; }
+  .ex-muscle { font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.08em; color:var(--accent); text-transform:uppercase; margin-bottom:3px; }
+  .ex-note { font-size:0.66rem; color:var(--text2); font-style:italic; margin-bottom:8px; }
+
+  /* SET TABLE */
+  .sets-table { width:100%; border-collapse:collapse; margin-top:4px; }
+  .sets-table th { font-family:'DM Mono',monospace; font-size:0.5rem; letter-spacing:0.1em; color:var(--accent); text-transform:uppercase; padding:5px 3px; text-align:center; border-bottom:1px solid var(--border2); background:#1a1a1a !important; }
+  .sets-table td { padding:5px 3px; text-align:center; vertical-align:middle; background:#111111 !important; color:#ffffff; border-bottom:1px solid var(--border); }
+  .sets-table tr:last-child td { border-bottom:none; }
+  .set-num { font-family:'DM Mono',monospace; font-size:0.65rem; color:var(--accent); font-weight:600; }
+  .set-input { background:#202020 !important; border:1px solid var(--border2); color:#ffffff !important; font-family:'DM Mono',monospace; font-size:0.85rem; padding:5px 3px; width:54px; outline:none; transition:border-color 0.15s; -webkit-appearance:none; border-radius:0; text-align:center; }
+  .set-input:focus { border-color:var(--accent); }
+  .set-input::placeholder { color:var(--muted); font-size:0.62rem; }
+  .set-prev { font-family:'DM Mono',monospace; font-size:0.56rem; color:var(--text2); }
+  .set-prev.up { color:var(--green); }
+  .set-prev.down { color:var(--red); }
+  .set-log-btn { background:var(--accent-dim); border:1px solid var(--accent-border); color:var(--accent); font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.06em; padding:5px 6px; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .set-log-btn:active { background:var(--accent); color:#000; }
+
+  /* INPUTS */
+  .field { background:#181818 !important; border:1px solid var(--border2); color:#ffffff !important; font-family:'DM Mono',monospace; font-size:1.1rem; padding:10px 12px; outline:none; transition:border-color 0.15s; border-radius:0; -webkit-appearance:none; }
+  .field:focus { border-color:var(--accent); }
+  .field::placeholder { color:var(--muted); }
+  .field-sm { width:80px; font-size:0.9rem; padding:8px 10px; }
+  .field-md { width:120px; }
+  .field-full { width:100%; flex:1; }
+  .field-label { font-family:'DM Mono',monospace; font-size:0.6rem; color:var(--text2); letter-spacing:0.1em; white-space:nowrap; }
+  .input-row { display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+
+  /* BUTTONS */
+  .btn { background:var(--accent); color:#000; border:none; font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:0.1em; padding:10px 18px; cursor:pointer; transition:opacity 0.15s; white-space:nowrap; }
+  .btn:active { opacity:0.75; }
+  .btn-ghost { background:transparent; border:1px solid var(--border2); color:var(--text2); font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.1em; padding:8px 14px; cursor:pointer; }
+  .btn-ghost:active { border-color:var(--accent); color:var(--accent); }
+  .btn-session { background:#181818 !important; border:1px solid var(--accent-border); color:var(--accent); font-family:'Bebas Neue',sans-serif; font-size:1rem; letter-spacing:0.1em; padding:14px 8px; cursor:pointer; transition:all 0.15s; width:100%; }
+  .btn-session.run { border-color:rgba(255,149,0,0.25); color:var(--orange); }
+  .btn-session.home { border-color:rgba(77,166,255,0.2); color:var(--blue); }
+  .btn-session:active { background:var(--accent) !important; color:#000; }
+  .btn-session.run:active { background:var(--orange) !important; }
+  .btn-session.home:active { background:var(--blue) !important; }
+  .btn-complete { background:var(--accent); color:#000; border:none; font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:0.1em; padding:14px 18px; cursor:pointer; width:100%; margin-top:16px; }
+
+  /* BARS */
+  .bar-wrap { height:3px; background:var(--border2); overflow:hidden; margin:6px 0; }
+  .bar-fill { height:100%; background:var(--accent); transition:width 0.4s ease; }
+  .bar-fill.orange { background:var(--orange); }
+  .bar-fill.blue { background:var(--blue); }
+
+  /* MINDSET */
+  .mindset-strip { background:#111111 !important; border:1px solid var(--border); border-left:3px solid var(--accent); padding:12px 14px; margin-bottom:14px; font-size:0.78rem; font-style:italic; color:var(--text2); line-height:1.5; }
+  .mindset-strip strong { color:#ffffff; font-style:normal; }
+
+  /* LOG */
+  .log-list { max-height:200px; overflow-y:auto; margin-top:10px; background:#111111 !important; }
+  .log-entry { display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); background:#111111 !important; }
+  .log-entry:last-child { border-bottom:none; }
+  .log-date { font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--muted); min-width:50px; }
+  .log-text { color:#ffffff; font-size:0.76rem; line-height:1.4; }
+
+  /* GOAL ROWS */
+  .goal-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); gap:12px; background:#111111 !important; }
+  .goal-row:last-child { border-bottom:none; }
+  .goal-info { flex:1; }
+  .goal-name { font-size:0.8rem; font-weight:500; color:#ffffff; margin-bottom:4px; }
+  .goal-nums { font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--text2); }
+  .goal-pct { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--accent); min-width:48px; text-align:right; }
+
+  /* RINGS */
+  .rings-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:14px; }
+  .ring-wrap { display:flex; flex-direction:column; align-items:center; }
+  svg.ring { transform:rotate(-90deg); }
+  .ring-bg { fill:none; stroke:var(--border2); stroke-width:8; }
+  .ring-fg { fill:none; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 0.6s ease; }
+  .ring-val { font-family:'Bebas Neue',sans-serif; font-size:1rem; color:#ffffff; text-align:center; }
+  .ring-label { font-family:'DM Mono',monospace; font-size:0.52rem; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase; margin-top:5px; text-align:center; }
+
+  /* CHART */
+  .chart-wrap { background:#111111 !important; border:1px solid var(--border); padding:16px; margin-bottom:12px; }
+  .chart-bars { display:flex; align-items:flex-end; gap:6px; height:80px; margin-top:10px; }
+  .chart-bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .chart-bar { width:100%; background:var(--accent-dim); border:1px solid var(--accent-border); min-height:2px; }
+  .chart-bar.run { background:var(--orange-dim); border-color:rgba(255,149,0,0.25); }
+  .chart-bar.filled { background:var(--accent); }
+  .chart-bar.run.filled { background:var(--orange); }
+  .chart-bar-label { font-family:'DM Mono',monospace; font-size:0.48rem; color:var(--muted); text-align:center; }
+  .chart-bar-val { font-family:'DM Mono',monospace; font-size:0.5rem; color:var(--text2); }
+
+  /* MACRO */
+  .macro-box { background:#181818 !important; border:1px solid var(--border); padding:12px; }
+  .macro-box-label { font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.12em; color:var(--muted); text-transform:uppercase; margin-bottom:6px; }
+  .macro-input { background:transparent !important; border:none; border-bottom:1px solid var(--border2); color:#ffffff !important; font-family:'Bebas Neue',sans-serif; font-size:1.8rem; width:100%; outline:none; padding-bottom:2px; -webkit-appearance:none; }
+  .macro-input:focus { border-bottom-color:var(--accent); }
+  .macro-target { font-family:'DM Mono',monospace; font-size:0.55rem; color:var(--muted); margin-top:4px; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:calc(72px + env(safe-area-inset-bottom) + 10px); left:50%; transform:translateX(-50%) translateY(10px); background:var(--accent); color:#000; font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.08em; padding:8px 16px; opacity:0; transition:all 0.25s ease; pointer-events:none; white-space:nowrap; z-index:200; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar { width:3px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border2); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ HOME -->
+<div class="screen active" id="screen-home">
+  <div class="page-title">FORM</div>
+  <div class="page-sub" id="home-date"></div>
+
+  <div class="mindset-strip">
+    <strong>84.4kg. 40 incoming. 12 weeks.</strong> Protein every day. Steps every day. Minimum two sessions. No excuses — only you getting in the way of you.
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-box" id="stat-sessions">
+      <div class="stat-label">Sessions This Week</div>
+      <div class="stat-val" id="home-sessions">0</div>
+      <div class="stat-unit">min 2 gym + 1 run</div>
+    </div>
+    <div class="stat-box" id="stat-steps">
+      <div class="stat-label">Steps This Week</div>
+      <div class="stat-val" id="home-steps-week">0</div>
+      <div class="stat-unit">target 70,000</div>
+    </div>
+    <div class="stat-box" id="stat-streak">
+      <div class="stat-label">Week Streak</div>
+      <div class="stat-val" id="home-streak">0</div>
+      <div class="stat-unit">consistent weeks</div>
+    </div>
+    <div class="stat-box" id="stat-weight">
+      <div class="stat-label">Weight</div>
+      <div class="stat-val" id="home-weight">--</div>
+      <div class="stat-unit">kg · start: 84.4kg</div>
+    </div>
+  </div>
+
+  <div class="section-label">This Week</div>
+  <div class="week-strip" id="week-strip"></div>
+
+  <div class="section-label">Today's Steps</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);">FEEDS WEEKLY 70K TARGET</span>
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--text2);" id="steps-today-display">0 today</span>
+    </div>
+    <div class="input-row" style="margin-top:0;">
+      <input type="number" class="field field-md" id="steps-input" placeholder="0000" inputmode="numeric">
+      <span class="field-label">steps</span>
+      <div style="flex:1;">
+        <div class="bar-wrap" style="margin:0 0 4px;"><div class="bar-fill" id="steps-bar" style="width:0%"></div></div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);" id="steps-pct-label">0 / 10,000</div>
+      </div>
+      <button class="btn" onclick="logSteps()">SAVE</button>
+    </div>
+  </div>
+
+  <div class="section-label">Weekly Steps → 70k</div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--accent);" id="weekly-steps-total">0</span>
+      <span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--muted);align-self:flex-end;padding-bottom:4px;">/ 70,000</span>
+    </div>
+    <div class="bar-wrap" style="height:6px;"><div class="bar-fill" id="weekly-steps-bar" style="width:0%"></div></div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--muted);margin-top:5px;" id="weekly-steps-remaining">70,000 still to go</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ TRAIN -->
+<div class="screen" id="screen-train">
+  <div class="page-title">TRAIN</div>
+  <div class="page-sub">Log any day · supersets · track every set</div>
+
+  <div class="section-label">Start a Session</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+    <button class="btn-session" onclick="startSession('A')">SESSION A<br><span style="font-size:0.65rem;opacity:0.7;">PUSH · Chest Shoulders Tris</span></button>
+    <button class="btn-session" onclick="startSession('B')">SESSION B<br><span style="font-size:0.65rem;opacity:0.7;">PULL · Back Biceps Hinge</span></button>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+    <button class="btn-session run" onclick="startSession('R')">ZONE 2 RUN<br><span style="font-size:0.65rem;opacity:0.7;">130–145 BPM</span></button>
+    <button class="btn-session home" onclick="startSession('H')">HOME SESSION<br><span style="font-size:0.65rem;opacity:0.7;">Legs + Core</span></button>
+  </div>
+
+  <div id="active-panel" style="display:none;">
+
+    <!-- ── SESSION A ─────────────────────────────── -->
+    <div id="panel-A" style="display:none;">
+      <div class="card-header">
+        <div class="card-title">Session A — Push</div>
+        <div class="badge badge-green">CHEST · SHOULDERS · TRIS</div>
+      </div>
+
+      <!-- SS1: Flat DB Press + Lateral Raises -->
+      <div class="superset-block">
+        <div class="superset-header">
+          <span class="superset-label">Superset 1</span>
+          <span class="superset-sets">4 sets · 8–12 reps</span>
+        </div>
+        <div class="ex-block">
+          <div class="ex-name">Flat DB Bench Press</div>
+          <div class="ex-muscle">Chest (Pectoralis Major) · Front Delts · Triceps</div>
+          <div class="ex-note">Full range of motion. Touch chest at bottom. Control the lower.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="A-fp-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-fp-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-fp-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','fp',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="A-fp-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-fp-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-fp-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','fp',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="A-fp-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-fp-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-fp-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','fp',3)">LOG</button></td></tr>
+            <tr><td class="set-num">4</td><td><input type="number" class="set-input" id="A-fp-4-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-fp-4-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-fp-4-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','fp',4)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">Dumbbell Lateral Raises</div>
+          <div class="ex-muscle">Medial Deltoids · Shoulder Width</div>
+          <div class="ex-note">Slow and controlled. No swinging. Stop at shoulder height.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="A-lr-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-lr-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-lr-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','lr',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="A-lr-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-lr-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-lr-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','lr',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="A-lr-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-lr-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-lr-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','lr',3)">LOG</button></td></tr>
+            <tr><td class="set-num">4</td><td><input type="number" class="set-input" id="A-lr-4-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-lr-4-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-lr-4-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','lr',4)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- SS2: Incline DB Press + Overhead Press -->
+      <div class="superset-block">
+        <div class="superset-header">
+          <span class="superset-label">Superset 2</span>
+          <span class="superset-sets">4 sets · 8–12 reps</span>
+        </div>
+        <div class="ex-block">
+          <div class="ex-name">Incline DB Press</div>
+          <div class="ex-muscle">Upper Chest · Front Delts · Triceps</div>
+          <div class="ex-note">Control the eccentric. Full stretch at the bottom.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="A-idp-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-idp-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-idp-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','idp',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="A-idp-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-idp-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-idp-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','idp',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="A-idp-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-idp-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-idp-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','idp',3)">LOG</button></td></tr>
+            <tr><td class="set-num">4</td><td><input type="number" class="set-input" id="A-idp-4-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-idp-4-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-idp-4-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','idp',4)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">DB Overhead Press</div>
+          <div class="ex-muscle">Anterior & Medial Delts · Triceps · Upper Chest</div>
+          <div class="ex-note">Seated or standing. Don't arch the lower back.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="A-ohp-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-ohp-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-ohp-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','ohp',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="A-ohp-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-ohp-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-ohp-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','ohp',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="A-ohp-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-ohp-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-ohp-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','ohp',3)">LOG</button></td></tr>
+            <tr><td class="set-num">4</td><td><input type="number" class="set-input" id="A-ohp-4-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-ohp-4-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-ohp-4-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','ohp',4)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- SS3: Pec Deck + Tricep Pushdown -->
+      <div class="superset-block">
+        <div class="superset-header">
+          <span class="superset-label">Superset 3</span>
+          <span class="superset-sets">3 sets · 10–12 reps</span>
+        </div>
+        <div class="ex-block">
+          <div class="ex-name">Pec Deck / Machine Chest Fly</div>
+          <div class="ex-muscle">Chest Definition · Pec Minor · Inner Chest</div>
+          <div class="ex-note">Wrist-friendly alternative to cable fly. Full stretch. Squeeze hard at top.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="A-pd-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-pd-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-pd-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','pd',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="A-pd-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-pd-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-pd-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','pd',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="A-pd-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-pd-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-pd-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','pd',3)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">Cable Tricep Pushdown</div>
+          <div class="ex-muscle">Triceps Lateral & Medial Head · Arm Size</div>
+          <div class="ex-note">Lock elbows in tight. Full extension at the bottom.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="A-tp-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-tp-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-tp-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','tp',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="A-tp-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-tp-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-tp-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','tp',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="A-tp-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-tp-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-tp-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','tp',3)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- SS4: Bench Dips + Russian Twists -->
+      <div class="superset-block">
+        <div class="superset-header">
+          <span class="superset-label">Superset 4 · Finisher</span>
+          <span class="superset-sets">3 sets</span>
+        </div>
+        <div class="ex-block">
+          <div class="ex-name">Bench Dips</div>
+          <div class="ex-muscle">Triceps Long Head · Chest · Front Delts</div>
+          <div class="ex-note">Monitor left wrist. If it aggravates, switch to machine dips.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th></th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td>—</td><td><input type="number" class="set-input" id="A-bd-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-bd-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','bd',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td>—</td><td><input type="number" class="set-input" id="A-bd-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-bd-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','bd',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td>—</td><td><input type="number" class="set-input" id="A-bd-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-bd-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','bd',3)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">Russian Twists</div>
+          <div class="ex-muscle">Obliques · Rotational Core</div>
+          <div class="ex-note">Feet elevated. Hold a weight plate or DB. Controlled rotation.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="A-rt-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-rt-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-rt-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','rt',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="A-rt-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-rt-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-rt-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','rt',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="A-rt-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="A-rt-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="A-rt-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','rt',3)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- Plank standalone -->
+      <div class="superset-block">
+        <div class="superset-header"><span class="superset-label">Standalone Finisher</span><span class="superset-sets">3 × 45–60s</span></div>
+        <div class="ex-block">
+          <div class="ex-name">Plank Hold</div>
+          <div class="ex-muscle">Core · Transverse Abdominis · Full Stability</div>
+          <div class="ex-note">Squeeze everything. Don't let hips sag.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th></th><th>Secs</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td>—</td><td><input type="number" class="set-input" id="A-plk-1-reps" placeholder="secs" inputmode="numeric"></td><td class="set-prev" id="A-plk-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','plk',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td>—</td><td><input type="number" class="set-input" id="A-plk-2-reps" placeholder="secs" inputmode="numeric"></td><td class="set-prev" id="A-plk-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','plk',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td>—</td><td><input type="number" class="set-input" id="A-plk-3-reps" placeholder="secs" inputmode="numeric"></td><td class="set-prev" id="A-plk-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('A','plk',3)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div style="background:#181818;border:1px solid var(--border);padding:12px 14px;margin-bottom:12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-bottom:4px;">OPTIONAL FINISHER</div>
+        <div style="font-size:0.8rem;color:var(--text2);">10 min incline treadmill walk · cool down</div>
+      </div>
+
+      <button class="btn-complete" onclick="completeSession('A')">COMPLETE SESSION A ✓</button>
+    </div>
+
+    <!-- ── SESSION B ─────────────────────────────── -->
+    <div id="panel-B" style="display:none;">
+      <div class="card-header">
+        <div class="card-title">Session B — Pull</div>
+        <div class="badge badge-orange">BACK · BICEPS · HINGE</div>
+      </div>
+
+      <!-- SS1: Deadlift + KB Swings -->
+      <div class="superset-block">
+        <div class="superset-header">
+          <span class="superset-label">Superset 1 · Anchor</span>
+          <span class="superset-sets">4 × 6 / 4 × 12</span>
+        </div>
+        <div class="ex-block">
+          <div class="ex-name">Deadlift</div>
+          <div class="ex-muscle">Hamstrings · Glutes · Lower Back · Traps · Forearms</div>
+          <div class="ex-note">Keep back neutral. Drive the floor away. Hinge don't squat.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="B-dl-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-dl-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-dl-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','dl',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="B-dl-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-dl-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-dl-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','dl',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="B-dl-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-dl-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-dl-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','dl',3)">LOG</button></td></tr>
+            <tr><td class="set-num">4</td><td><input type="number" class="set-input" id="B-dl-4-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-dl-4-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-dl-4-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','dl',4)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">KB Swings</div>
+          <div class="ex-muscle">Glutes · Hamstrings · Core · Posterior Chain</div>
+          <div class="ex-note">Hip hinge drive. Snap hips forward at the top. Not a squat.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="B-kbs-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-kbs-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-kbs-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','kbs',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="B-kbs-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-kbs-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-kbs-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','kbs',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="B-kbs-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-kbs-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-kbs-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','kbs',3)">LOG</button></td></tr>
+            <tr><td class="set-num">4</td><td><input type="number" class="set-input" id="B-kbs-4-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-kbs-4-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-kbs-4-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','kbs',4)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- SS2: Lat Pulldown + One Arm Row -->
+      <div class="superset-block">
+        <div class="superset-header">
+          <span class="superset-label">Superset 2</span>
+          <span class="superset-sets">3 sets · 8–10 reps</span>
+        </div>
+        <div class="ex-block">
+          <div class="ex-name">Lat Pulldown</div>
+          <div class="ex-muscle">Lats · Teres Major · Rear Delts · Biceps</div>
+          <div class="ex-note">Pull to upper chest. Lean back slightly. Full hang at the top.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="B-lp-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-lp-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-lp-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','lp',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="B-lp-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-lp-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-lp-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','lp',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="B-lp-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-lp-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-lp-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','lp',3)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">One Arm DB Row</div>
+          <div class="ex-muscle">Mid Back · Lats · Rear Delts · Biceps</div>
+          <div class="ex-note">Brace on bench. Pull elbow back past hip. Full stretch at bottom.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>R Reps</th><th>L Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="B-row-1-kg" placeholder="kg" inputmode="decimal" style="width:46px;"></td><td><input type="number" class="set-input" id="B-row-1-r" placeholder="R" inputmode="numeric" style="width:40px;"></td><td><input type="number" class="set-input" id="B-row-1-l" placeholder="L" inputmode="numeric" style="width:40px;"></td><td class="set-prev" id="B-row-1-prev">—</td><td><button class="set-log-btn" onclick="saveRowSet(1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="B-row-2-kg" placeholder="kg" inputmode="decimal" style="width:46px;"></td><td><input type="number" class="set-input" id="B-row-2-r" placeholder="R" inputmode="numeric" style="width:40px;"></td><td><input type="number" class="set-input" id="B-row-2-l" placeholder="L" inputmode="numeric" style="width:40px;"></td><td class="set-prev" id="B-row-2-prev">—</td><td><button class="set-log-btn" onclick="saveRowSet(2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="B-row-3-kg" placeholder="kg" inputmode="decimal" style="width:46px;"></td><td><input type="number" class="set-input" id="B-row-3-r" placeholder="R" inputmode="numeric" style="width:40px;"></td><td><input type="number" class="set-input" id="B-row-3-l" placeholder="L" inputmode="numeric" style="width:40px;"></td><td class="set-prev" id="B-row-3-prev">—</td><td><button class="set-log-btn" onclick="saveRowSet(3)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- SS3: Seated Cable Row + EZ Bar Curl -->
+      <div class="superset-block">
+        <div class="superset-header">
+          <span class="superset-label">Superset 3</span>
+          <span class="superset-sets">3 sets · 10–12 reps</span>
+        </div>
+        <div class="ex-block">
+          <div class="ex-name">Seated Cable Row</div>
+          <div class="ex-muscle">Mid Back · Rhomboids · Rear Delts · Biceps</div>
+          <div class="ex-note">Full stretch at the bottom. Squeeze shoulder blades together at top.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="B-scr-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-scr-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-scr-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','scr',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="B-scr-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-scr-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-scr-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','scr',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="B-scr-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-scr-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-scr-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','scr',3)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">EZ Bar Bicep Curl</div>
+          <div class="ex-muscle">Biceps · Brachialis · Forearms</div>
+          <div class="ex-note">Elbows pinned to sides. No swinging. 3-second lower.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="B-bc-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-bc-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-bc-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','bc',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="B-bc-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-bc-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-bc-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','bc',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="B-bc-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-bc-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-bc-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','bc',3)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- SS4: Rear Delt Fly + Hammer Curl -->
+      <div class="superset-block">
+        <div class="superset-header">
+          <span class="superset-label">Superset 4 · Finisher</span>
+          <span class="superset-sets">3 sets · 12–15 reps</span>
+        </div>
+        <div class="ex-block">
+          <div class="ex-name">Rear Delt DB Fly</div>
+          <div class="ex-muscle">Posterior Deltoids · Rhomboids · Upper Back</div>
+          <div class="ex-note">Face down on incline bench. Raise arms out to sides. Squeeze at top.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="B-rdf-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-rdf-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-rdf-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','rdf',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="B-rdf-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-rdf-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-rdf-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','rdf',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="B-rdf-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-rdf-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-rdf-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','rdf',3)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">Hammer Curls</div>
+          <div class="ex-muscle">Biceps · Brachialis · Brachioradialis · Forearm Thickness</div>
+          <div class="ex-note">Neutral grip. Controlled. Builds arm thickness that regular curls miss.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="B-hc-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-hc-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-hc-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','hc',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="B-hc-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-hc-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-hc-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','hc',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="B-hc-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="B-hc-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="B-hc-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('B','hc',3)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div style="background:#181818;border:1px solid var(--border);padding:12px 14px;margin-bottom:12px;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-bottom:4px;">OPTIONAL FINISHER</div>
+        <div style="font-size:0.8rem;color:var(--text2);">10 min incline treadmill walk · cool down</div>
+      </div>
+
+      <button class="btn-complete" style="background:var(--orange);" onclick="completeSession('B')">COMPLETE SESSION B ✓</button>
+    </div>
+
+    <!-- ── RUN ───────────────────────────────────── -->
+    <div id="panel-R" style="display:none;">
+      <div class="card-header">
+        <div class="card-title">Zone 2 Run</div>
+        <div class="badge badge-orange">130–145 BPM · CONVERSATIONAL</div>
+      </div>
+      <div style="background:#181818;border:1px solid var(--border2);padding:14px;margin-bottom:14px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--orange);">130–145 <span style="font-size:0.8rem;font-family:'DM Mono',monospace;color:var(--muted);">BPM</span></div>
+        <div style="font-size:0.75rem;color:var(--text2);margin-top:6px;line-height:1.5;">Conversational pace. Full sentences without gasping. If you're breathing hard, slow down. Zone 4 costs your next session.</div>
+      </div>
+      <div class="input-row" style="margin-top:0;">
+        <input type="number" class="field field-sm" id="run-dist" placeholder="km" inputmode="decimal">
+        <span class="field-label">km</span>
+        <input type="number" class="field field-sm" id="run-time" placeholder="min" inputmode="numeric">
+        <span class="field-label">min</span>
+        <input type="number" class="field field-sm" id="run-hr" placeholder="BPM" inputmode="numeric">
+        <span class="field-label">avg HR</span>
+      </div>
+      <button class="btn-complete" style="background:var(--orange);" onclick="completeSession('R')">LOG RUN ✓</button>
+    </div>
+
+    <!-- ── HOME ──────────────────────────────────── -->
+    <div id="panel-H" style="display:none;">
+      <div class="card-header">
+        <div class="card-title">Home Session</div>
+        <div class="badge badge-blue">LEGS · CORE · 30–40 MIN</div>
+      </div>
+
+      <div class="superset-block">
+        <div class="superset-header"><span class="superset-label">Superset 1</span><span class="superset-sets">3–4 sets · 10–12 reps</span></div>
+        <div class="ex-block">
+          <div class="ex-name">Goblet Squat</div>
+          <div class="ex-muscle">Quads · Glutes · Core</div>
+          <div class="ex-note">Hold DB at chest. Chest up. Drive through heels.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="H-gs-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-gs-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-gs-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','gs',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="H-gs-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-gs-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-gs-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','gs',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="H-gs-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-gs-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-gs-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','gs',3)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">Romanian Deadlift</div>
+          <div class="ex-muscle">Hamstrings · Glutes · Lower Back</div>
+          <div class="ex-note">Hinge at hips. Feel the hamstring stretch. Keep back flat.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="H-rdl-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-rdl-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-rdl-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','rdl',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="H-rdl-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-rdl-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-rdl-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','rdl',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="H-rdl-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-rdl-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-rdl-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','rdl',3)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="superset-block">
+        <div class="superset-header"><span class="superset-label">Superset 2</span><span class="superset-sets">3 sets · 8 each leg</span></div>
+        <div class="ex-block">
+          <div class="ex-name">Bulgarian Split Squat</div>
+          <div class="ex-muscle">Quads · Glutes · Hip Flexors · Balance</div>
+          <div class="ex-note">Back foot on chair or sofa. Lower until back knee nearly touches floor.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="H-bss-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-bss-1-reps" placeholder="each" inputmode="numeric"></td><td class="set-prev" id="H-bss-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','bss',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="H-bss-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-bss-2-reps" placeholder="each" inputmode="numeric"></td><td class="set-prev" id="H-bss-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','bss',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="H-bss-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-bss-3-reps" placeholder="each" inputmode="numeric"></td><td class="set-prev" id="H-bss-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','bss',3)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">Glute Bridge</div>
+          <div class="ex-muscle">Glutes · Hamstrings · Lower Back</div>
+          <div class="ex-note">DB on hips. Drive up and squeeze hard at the top. Hold 2 secs.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th>kg</th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td><input type="number" class="set-input" id="H-gb-1-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-gb-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-gb-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','gb',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td><input type="number" class="set-input" id="H-gb-2-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-gb-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-gb-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','gb',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td><input type="number" class="set-input" id="H-gb-3-kg" placeholder="kg" inputmode="decimal"></td><td><input type="number" class="set-input" id="H-gb-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-gb-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','gb',3)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="superset-block">
+        <div class="superset-header"><span class="superset-label">Core Finisher</span><span class="superset-sets">3 sets</span></div>
+        <div class="ex-block">
+          <div class="ex-name">Bicycle Crunches</div>
+          <div class="ex-muscle">Obliques · Rectus Abdominis</div>
+          <div class="ex-note">Controlled rotation. Don't pull your neck.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th></th><th>Reps</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td>—</td><td><input type="number" class="set-input" id="H-bc-1-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-bc-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','bc',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td>—</td><td><input type="number" class="set-input" id="H-bc-2-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-bc-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','bc',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td>—</td><td><input type="number" class="set-input" id="H-bc-3-reps" placeholder="reps" inputmode="numeric"></td><td class="set-prev" id="H-bc-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','bc',3)">LOG</button></td></tr>
+          </table>
+        </div>
+        <div class="ex-connector"><div class="ex-connector-line"></div><div class="ex-connector-text">SUPERSET WITH</div><div class="ex-connector-line"></div></div>
+        <div class="ex-block ex-b">
+          <div class="ex-name">Plank Hold</div>
+          <div class="ex-muscle">Core · Transverse Abdominis · Stability</div>
+          <div class="ex-note">Squeeze everything. Don't let hips sag or pike.</div>
+          <table class="sets-table">
+            <tr><th>Set</th><th></th><th>Secs</th><th>Last</th><th></th></tr>
+            <tr><td class="set-num">1</td><td>—</td><td><input type="number" class="set-input" id="H-plk-1-reps" placeholder="secs" inputmode="numeric"></td><td class="set-prev" id="H-plk-1-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','plk',1)">LOG</button></td></tr>
+            <tr><td class="set-num">2</td><td>—</td><td><input type="number" class="set-input" id="H-plk-2-reps" placeholder="secs" inputmode="numeric"></td><td class="set-prev" id="H-plk-2-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','plk',2)">LOG</button></td></tr>
+            <tr><td class="set-num">3</td><td>—</td><td><input type="number" class="set-input" id="H-plk-3-reps" placeholder="secs" inputmode="numeric"></td><td class="set-prev" id="H-plk-3-prev">—</td><td><button class="set-log-btn" onclick="saveSet('H','plk',3)">LOG</button></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <button class="btn-complete" style="background:var(--blue);" onclick="completeSession('H')">COMPLETE HOME SESSION ✓</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ FUEL -->
+<div class="screen" id="screen-nutrition">
+  <div class="page-title">FUEL</div>
+  <div class="page-sub">Protein is the only non-negotiable</div>
+
+  <div class="mindset-strip">
+    <strong>One rule:</strong> 160g protein every single day. Calories loosely. Track properly for 4 weeks then go by feel.
+  </div>
+
+  <div class="section-label">Today's Protein</div>
+  <div class="card">
+    <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:10px;">
+      <input type="number" class="macro-input" id="m-protein" placeholder="0" inputmode="numeric" oninput="updateProteinBar()" style="font-size:3rem;width:120px;border-bottom:2px solid var(--accent);">
+      <div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--text2);">/ 160g</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);">protein today</div>
+      </div>
+      <div style="margin-left:auto;text-align:right;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--accent);" id="protein-pct-label">0%</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);">of target</div>
+      </div>
+    </div>
+    <div class="bar-wrap" style="height:5px;margin:0;"><div class="bar-fill" id="bar-protein" style="width:0%;"></div></div>
+    <div id="protein-status" style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);margin-top:6px;">Enter today's protein above</div>
+  </div>
+
+  <div class="section-label">Calories (Optional)</div>
+  <div class="card" style="padding:14px;">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.1em;">ROUGH ESTIMATE IS FINE</div>
+        <input type="number" class="macro-input" id="m-calories" placeholder="0" inputmode="numeric" oninput="updateCalBar()" style="font-size:1.6rem;width:110px;">
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--muted);">Target</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:1.1rem;color:var(--text2);">2,200–2,400</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.55rem;color:var(--muted);">kcal</div>
+      </div>
+    </div>
+    <div class="bar-wrap" style="margin-top:8px;margin-bottom:0;"><div class="bar-fill blue" id="bar-calories" style="width:0%;"></div></div>
+  </div>
+
+  <button class="btn-ghost" onclick="toggleExtras()" id="extras-toggle" style="width:100%;text-align:center;padding:9px;margin-bottom:8px;">+ CARBS & FATS (OPTIONAL)</button>
+  <div id="extras-panel" style="display:none;margin-bottom:12px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="macro-box"><div class="macro-box-label">Carbs</div><input type="number" class="macro-input" id="m-carbs" placeholder="0" inputmode="numeric" style="font-size:1.4rem;"><div class="macro-target">180–220g</div></div>
+      <div class="macro-box"><div class="macro-box-label">Fats</div><input type="number" class="macro-input" id="m-fats" placeholder="0" inputmode="numeric" style="font-size:1.4rem;"><div class="macro-target">60–80g</div></div>
+    </div>
+  </div>
+
+  <button class="btn" style="width:100%;margin-bottom:20px;" onclick="saveNutrition()">SAVE TODAY'S NUTRITION</button>
+
+  <div class="section-label">Protein Sources</div>
+  <div class="card" style="font-size:0.76rem;color:var(--text2);line-height:1.9;">
+    Chicken breast · Turkey mince · Chicken mince · Eggs · Greek yoghurt · Cottage cheese · Protein shake (2 scoops ~60g) · Protein yoghurt (~25g) · Tuna · Salmon · Lean beef mince · Feta
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ PROGRESS -->
+<div class="screen" id="screen-progress">
+  <div class="page-title">PROGRESS</div>
+  <div class="page-sub">84.4kg start · 40th birthday · 12 weeks</div>
+
+  <div class="section-label">This Week</div>
+  <div class="rings-row">
+    <div class="ring-wrap">
+      <svg class="ring" width="80" height="80" viewBox="0 0 80 80">
+        <circle class="ring-bg" cx="40" cy="40" r="32"/>
+        <circle class="ring-fg" cx="40" cy="40" r="32" stroke="#d4f53c" id="ring-gym" stroke-dasharray="201" stroke-dashoffset="201"/>
+      </svg>
+      <div class="ring-val" id="ring-gym-val">0/2</div>
+      <div class="ring-label">Gym Sessions</div>
+    </div>
+    <div class="ring-wrap">
+      <svg class="ring" width="80" height="80" viewBox="0 0 80 80">
+        <circle class="ring-bg" cx="40" cy="40" r="32"/>
+        <circle class="ring-fg" cx="40" cy="40" r="32" stroke="#ff9500" id="ring-run" stroke-dasharray="201" stroke-dashoffset="201"/>
+      </svg>
+      <div class="ring-val" id="ring-run-val">0/1</div>
+      <div class="ring-label">Zone 2 Run</div>
+    </div>
+    <div class="ring-wrap">
+      <svg class="ring" width="80" height="80" viewBox="0 0 80 80">
+        <circle class="ring-bg" cx="40" cy="40" r="32"/>
+        <circle class="ring-fg" cx="40" cy="40" r="32" stroke="#4da6ff" id="ring-steps" stroke-dasharray="201" stroke-dashoffset="201"/>
+      </svg>
+      <div class="ring-val" id="ring-steps-val">0%</div>
+      <div class="ring-label">Steps 70k</div>
+    </div>
+  </div>
+
+  <div class="section-label">Session History · Last 8 Weeks</div>
+  <div class="chart-wrap">
+    <div style="font-family:'DM Mono',monospace;font-size:0.56rem;color:var(--muted);letter-spacing:0.1em;">SESSIONS PER WEEK</div>
+    <div class="chart-bars" id="session-chart"></div>
+    <div style="display:flex;gap:12px;margin-top:10px;">
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:10px;height:10px;background:var(--accent);"></div><span style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);">GYM</span></div>
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:10px;height:10px;background:var(--orange);"></div><span style="font-family:'DM Mono',monospace;font-size:0.52rem;color:var(--muted);">RUN</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">12-Week Goals</div>
+  <div class="card">
+    <div class="goal-row">
+      <div class="goal-info">
+        <div class="goal-name">Gym Sessions</div>
+        <div class="bar-wrap"><div class="bar-fill" id="g-gym-bar" style="width:0%"></div></div>
+        <div class="goal-nums" id="g-gym-nums">0 / 24</div>
+      </div>
+      <div class="goal-pct" id="g-gym-pct">0%</div>
+    </div>
+    <div class="goal-row">
+      <div class="goal-info">
+        <div class="goal-name">Zone 2 Runs</div>
+        <div class="bar-wrap"><div class="bar-fill orange" id="g-run-bar" style="width:0%"></div></div>
+        <div class="goal-nums" id="g-run-nums">0 / 12</div>
+      </div>
+      <div class="goal-pct" id="g-run-pct" style="color:var(--orange);">0%</div>
+    </div>
+    <div class="goal-row">
+      <div class="goal-info">
+        <div class="goal-name">Consistent Weeks</div>
+        <div class="bar-wrap"><div class="bar-fill blue" id="g-week-bar" style="width:0%"></div></div>
+        <div class="goal-nums" id="g-week-nums">0 / 12</div>
+      </div>
+      <div class="goal-pct" id="g-week-pct" style="color:var(--blue);">0%</div>
+    </div>
+  </div>
+
+  <div class="section-label">Weight Log</div>
+  <div class="card">
+    <div style="font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--muted);margin-bottom:10px;">START: 84.4kg · log weekly</div>
+    <div class="input-row" style="margin-top:0;">
+      <input type="number" class="field field-md" id="weight-input" placeholder="84.0" inputmode="decimal" step="0.1">
+      <span class="field-label">kg</span>
+      <button class="btn" onclick="logWeight()">LOG</button>
+    </div>
+    <div class="log-list" id="weight-log"></div>
+  </div>
+
+  <div class="section-label">Progress Notes</div>
+  <div class="card">
+    <div class="input-row" style="margin-top:0;">
+      <input type="text" class="field field-full" id="note-input" placeholder="Energy, lifts, how clothes fit...">
+      <button class="btn" onclick="addNote()">ADD</button>
+    </div>
+    <div class="log-list" id="notes-log"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="goTo('home')" id="nav-home"><span class="nav-icon">⌂</span>Home</button>
+  <button class="nav-btn" onclick="goTo('train')" id="nav-train"><span class="nav-icon">◈</span>Train</button>
+  <button class="nav-btn" onclick="goTo('nutrition')" id="nav-nutrition"><span class="nav-icon">◎</span>Fuel</button>
+  <button class="nav-btn" onclick="goTo('progress')" id="nav-progress"><span class="nav-icon">↗</span>Progress</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+const KEY = 'adam_form_v4';
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; } }
+function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { showToast('SAVE ERROR'); } }
+
+let S = load();
+['gymCount','runCount','weekCount'].forEach(k => { if(!S[k]) S[k]=0; });
+['weekDays','lifts','dailySteps','weightLog','notes'].forEach(k => { if(!S[k]) S[k] = Array.isArray([])?[]:{}; });
+if(!S.weightLog) S.weightLog=[];
+if(!S.notes) S.notes=[];
+if(!S.weekDays) S.weekDays={};
+if(!S.lifts) S.lifts={};
+if(!S.dailySteps) S.dailySteps={};
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='progress'){updateGoals();buildChart();updateRings();}
+}
+
+// ── DATES ─────────────────────────────────────────────────────────────────────
+const now = new Date();
+const DAYS=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtShort(d){d=d||now;return d.getDate()+' '+MONTHS[d.getMonth()];}
+function todayKey(){return now.getFullYear()+'-'+now.getMonth()+'-'+now.getDate();}
+
+document.getElementById('home-date').textContent = DAYS[now.getDay()]+' · '+now.getDate()+' '+MONTHS[now.getMonth()]+' '+now.getFullYear();
+
+// ── WEEK STRIP ────────────────────────────────────────────────────────────────
+const todayDow=(now.getDay()+6)%7;
+const monday=new Date(now); monday.setDate(now.getDate()-todayDow);
+const WK_LABELS=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+const strip=document.getElementById('week-strip');
+
+function refreshStrip(){
+  strip.innerHTML='';
+  WK_LABELS.forEach((label,i)=>{
+    const d=new Date(monday); d.setDate(monday.getDate()+i);
+    const k=d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+    const st=S.weekDays[k];
+    const tile=document.createElement('div');
+    let cls='day-tile'+(i===todayDow?' today':'');
+    if(st==='gym') cls+=' done-gym';
+    else if(st==='run') cls+=' done-run';
+    else if(st==='home') cls+=' done-home';
+    tile.className=cls;
+    tile.innerHTML=`<div class="d-name">${label}</div><div class="d-num">${d.getDate()}</div><div class="d-tag">${st?st.toUpperCase():'·'}</div>`;
+    strip.appendChild(tile);
+  });
+}
+refreshStrip();
+
+// ── STEPS ─────────────────────────────────────────────────────────────────────
+function logSteps(){
+  const val=parseInt(document.getElementById('steps-input').value)||0;
+  S.dailySteps[todayKey()]=val; save(S);
+  updateStepsUI(val); updateWeeklySteps(); updateHomeStats();
+  showToast(val>=10000?'10K HIT ✓':'STEPS SAVED');
+}
+
+function updateStepsUI(val){
+  const pct=Math.min((val/10000)*100,100);
+  document.getElementById('steps-bar').style.width=pct+'%';
+  document.getElementById('steps-pct-label').textContent=val.toLocaleString()+' / 10,000';
+  document.getElementById('steps-today-display').textContent=val.toLocaleString()+' today';
+}
+
+function updateWeeklySteps(){
+  let total=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(monday); d.setDate(monday.getDate()+i);
+    total+=(S.dailySteps[d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate()]||0);
+  }
+  S.weeklySteps=total;
+  const pct=Math.min((total/70000)*100,100);
+  document.getElementById('weekly-steps-total').textContent=total.toLocaleString();
+  document.getElementById('weekly-steps-bar').style.width=pct+'%';
+  const rem=Math.max(70000-total,0);
+  document.getElementById('weekly-steps-remaining').textContent=rem>0?rem.toLocaleString()+' still needed this week':'✓ 70K TARGET HIT';
+}
+
+const todaySteps=S.dailySteps[todayKey()]||0;
+if(todaySteps){document.getElementById('steps-input').value=todaySteps;updateStepsUI(todaySteps);}
+updateWeeklySteps();
+
+// ── HOME STATS ────────────────────────────────────────────────────────────────
+function updateHomeStats(){
+  const vals=Object.values(S.weekDays);
+  const gymW=vals.filter(v=>v==='gym').length;
+  const runW=vals.filter(v=>v==='run').length;
+  const total=gymW+runW;
+  document.getElementById('home-sessions').textContent=total;
+  document.getElementById('stat-sessions').classList.toggle('lit',total>=3);
+  const ws=S.weeklySteps||0;
+  document.getElementById('home-steps-week').textContent=ws>=1000?Math.round(ws/1000)+'k':ws;
+  document.getElementById('stat-steps').classList.toggle('lit',ws>=70000);
+  document.getElementById('home-streak').textContent=S.weekCount||0;
+  document.getElementById('stat-streak').classList.toggle('lit',(S.weekCount||0)>0);
+  if(S.weightLog&&S.weightLog.length>0){
+    document.getElementById('home-weight').textContent=S.weightLog[0].val;
+    document.getElementById('stat-weight').classList.toggle('lit',true);
+  }
+}
+updateHomeStats();
+
+// ── SESSIONS ─────────────────────────────────────────────────────────────────
+function startSession(type){
+  document.getElementById('active-panel').style.display='block';
+  ['A','B','R','H'].forEach(t=>document.getElementById('panel-'+t).style.display='none');
+  document.getElementById('panel-'+type).style.display='block';
+  document.getElementById('active-panel').scrollIntoView({behavior:'smooth'});
+  loadAllPrevSets();
+}
+
+function completeSession(type){
+  const key=todayKey();
+  if(type==='R'){
+    const dist=document.getElementById('run-dist').value;
+    const time=document.getElementById('run-time').value;
+    const hr=document.getElementById('run-hr').value;
+    S.runCount=(S.runCount||0)+1;
+    S.weekDays[key]='run';
+    S.notes.unshift({date:fmtShort(),text:`Zone 2 run · ${dist||'?'}km · ${time||'?'} mins · ${hr||'?'} avg BPM`});
+    showToast('RUN LOGGED ✓');
+  } else if(type==='H'){
+    S.gymCount=(S.gymCount||0)+1;
+    S.weekDays[key]='home';
+    S.notes.unshift({date:fmtShort(),text:'Home session complete ✓'});
+    showToast('HOME SESSION COMPLETE ✓');
+  } else {
+    S.gymCount=(S.gymCount||0)+1;
+    S.weekDays[key]='gym';
+    S.notes.unshift({date:fmtShort(),text:`Session ${type} complete ✓`});
+    showToast('SESSION '+type+' COMPLETE ✓');
+  }
+  save(S); updateHomeStats(); updateGoals();
+  document.getElementById('active-panel').style.display='none';
+  refreshStrip(); renderNotes();
+}
+
+// ── SET LOGGING ───────────────────────────────────────────────────────────────
+function saveSet(session,ex,setNum){
+  const kgEl=document.getElementById(`${session}-${ex}-${setNum}-kg`);
+  const repsEl=document.getElementById(`${session}-${ex}-${setNum}-reps`);
+  const prevEl=document.getElementById(`${session}-${ex}-${setNum}-prev`);
+  const kg=kgEl?parseFloat(kgEl.value):null;
+  const reps=repsEl?parseInt(repsEl.value):null;
+  if(!kg&&!reps){showToast('ENTER VALUES FIRST');return;}
+  const liftKey=`${session}_${ex}_${setNum}`;
+  const prev=S.lifts[liftKey];
+  S.lifts[liftKey]={kg:kg||0,reps:reps||0,date:fmtShort()};
+  save(S);
+  if(prevEl){
+    if(prev&&(prev.kg||prev.reps)){
+      const improved=(kg||0)>(prev.kg||0)||((kg||0)===(prev.kg||0)&&(reps||0)>(prev.reps||0));
+      const same=(kg||0)===(prev.kg||0)&&(reps||0)===(prev.reps||0);
+      if(improved){prevEl.textContent=`▲ PB`;prevEl.className='set-prev up';}
+      else if(same){prevEl.textContent='= same';prevEl.className='set-prev';}
+      else{prevEl.textContent=`▼ ${prev.kg?prev.kg+'kg':''}×${prev.reps}`;prevEl.className='set-prev down';}
+    } else {
+      prevEl.textContent='✓ first';prevEl.className='set-prev up';
+    }
+  }
+  showToast(`SET ${setNum} LOGGED ✓`);
+}
+
+function saveRowSet(setNum){
+  const kg=parseFloat(document.getElementById(`B-row-${setNum}-kg`).value)||0;
+  const r=parseInt(document.getElementById(`B-row-${setNum}-r`).value)||0;
+  const l=parseInt(document.getElementById(`B-row-${setNum}-l`).value)||0;
+  const prevEl=document.getElementById(`B-row-${setNum}-prev`);
+  if(!kg&&!r&&!l){showToast('ENTER VALUES FIRST');return;}
+  const liftKey=`B_row_${setNum}`;
+  const prev=S.lifts[liftKey];
+  S.lifts[liftKey]={kg,r,l,date:fmtShort()};
+  save(S);
+  if(prevEl){
+    if(prev){
+      const improved=kg>(prev.kg||0);
+      prevEl.textContent=improved?`▲ PB`:`${prev.kg}kg R${prev.r}/L${prev.l}`;
+      prevEl.className=improved?'set-prev up':'set-prev';
+    } else { prevEl.textContent='✓ first'; prevEl.className='set-prev up'; }
+  }
+  showToast(`ROW SET ${setNum} LOGGED ✓`);
+}
+
+function loadAllPrevSets(){
+  Object.keys(S.lifts).forEach(liftKey=>{
+    const d=S.lifts[liftKey];
+    const parts=liftKey.split('_');
+    if(parts.length===3){
+      const elId=`${parts[0]}-${parts[1]}-${parts[2]}-prev`;
+      const el=document.getElementById(elId);
+      if(el&&d){
+        if(d.r!==undefined){el.textContent=`${d.kg}kg R${d.r}/L${d.l}`;}
+        else{el.textContent=`${d.kg?d.kg+'kg × ':''}${d.reps} · ${d.date}`;}
+      }
+    }
+  });
+}
+
+// ── NUTRITION ─────────────────────────────────────────────────────────────────
+function toggleExtras(){
+  const p=document.getElementById('extras-panel');
+  const b=document.getElementById('extras-toggle');
+  const h=p.style.display==='none';
+  p.style.display=h?'block':'none';
+  b.textContent=h?'- HIDE CARBS & FATS':'+ CARBS & FATS (OPTIONAL)';
+}
+
+function updateProteinBar(){
+  const val=parseInt(document.getElementById('m-protein').value)||0;
+  const pct=Math.min((val/160)*100,100);
+  document.getElementById('bar-protein').style.width=pct+'%';
+  document.getElementById('protein-pct-label').textContent=Math.round(pct)+'%';
+  const status=document.getElementById('protein-status');
+  if(val===0){status.textContent="Enter today's protein above";status.style.color='var(--muted)';}
+  else if(val>=160){status.textContent='✓ Target hit · '+val+'g logged';status.style.color='var(--green)';}
+  else{status.textContent=(160-val)+'g still needed today';status.style.color='var(--orange)';}
+}
+
+function updateCalBar(){
+  const val=parseInt(document.getElementById('m-calories').value)||0;
+  document.getElementById('bar-calories').style.width=Math.min((val/2300)*100,100)+'%';
+}
+
+function saveNutrition(){
+  const protein=document.getElementById('m-protein').value||0;
+  const cals=document.getElementById('m-calories').value||0;
+  let txt=`Protein: ${protein}g`;
+  if(cals>0) txt+=` · ${cals}kcal`;
+  S.notes.unshift({date:fmtShort(),text:txt});
+  if(S.notes.length>60) S.notes.pop();
+  save(S); renderNotes();
+  showToast(parseInt(protein)>=160?'PROTEIN HIT ✓':'SAVED · '+protein+'g / 160g');
+}
+
+// ── WEIGHT ────────────────────────────────────────────────────────────────────
+function logWeight(){
+  const val=parseFloat(document.getElementById('weight-input').value);
+  if(!val){showToast('ENTER WEIGHT');return;}
+  S.weightLog.unshift({date:fmtShort(),val});
+  if(S.weightLog.length>24) S.weightLog.pop();
+  save(S); updateHomeStats(); renderWeightLog();
+  showToast('WEIGHT LOGGED ✓');
+  document.getElementById('weight-input').value='';
+}
+
+function renderWeightLog(){
+  const c=document.getElementById('weight-log');
+  if(!S.weightLog||!S.weightLog.length){c.innerHTML='<div style="font-size:0.72rem;color:var(--muted);padding:8px 0;">No entries yet.</div>';return;}
+  c.innerHTML=S.weightLog.map((e,i)=>{
+    let trend='';
+    if(i<S.weightLog.length-1){
+      const diff=(e.val-S.weightLog[i+1].val).toFixed(1);
+      const col=diff>0?'var(--red)':'var(--green)';
+      trend=`<span style="color:${col};font-size:0.6rem;">${diff>0?'▲':'▼'}${Math.abs(diff)}</span>`;
+    }
+    const fs=(e.val-84.4).toFixed(1);
+    const fsc=fs>0?'var(--red)':'var(--green)';
+    return `<div class="log-entry"><div class="log-date">${e.date}</div><div class="log-text">${e.val}kg ${trend} <span style="font-size:0.6rem;color:${fsc};">(${fs>0?'+':''}${fs} from start)</span></div></div>`;
+  }).join('');
+}
+renderWeightLog();
+
+// ── NOTES ─────────────────────────────────────────────────────────────────────
+function addNote(){
+  const input=document.getElementById('note-input');
+  if(!input.value.trim()) return;
+  S.notes.unshift({date:fmtShort(),text:input.value.trim()});
+  if(S.notes.length>60) S.notes.pop();
+  save(S); renderNotes(); input.value=''; showToast('NOTE SAVED');
+}
+
+function renderNotes(){
+  const c=document.getElementById('notes-log');
+  if(!S.notes||!S.notes.length){c.innerHTML='<div style="font-size:0.72rem;color:var(--muted);padding:8px 0;">No notes yet.</div>';return;}
+  c.innerHTML=S.notes.slice(0,25).map(n=>`<div class="log-entry"><div class="log-date">${n.date}</div><div class="log-text">${n.text}</div></div>`).join('');
+}
+renderNotes();
+document.getElementById('note-input').addEventListener('keydown',e=>{if(e.key==='Enter')addNote();});
+
+// ── GOALS ─────────────────────────────────────────────────────────────────────
+function updateGoals(){
+  const gym=S.gymCount||0,run=S.runCount||0,weeks=S.weekCount||0;
+  document.getElementById('g-gym-bar').style.width=Math.min((gym/24)*100,100)+'%';
+  document.getElementById('g-gym-nums').textContent=gym+' / 24';
+  document.getElementById('g-gym-pct').textContent=Math.round((gym/24)*100)+'%';
+  document.getElementById('g-run-bar').style.width=Math.min((run/12)*100,100)+'%';
+  document.getElementById('g-run-nums').textContent=run+' / 12';
+  document.getElementById('g-run-pct').textContent=Math.round((run/12)*100)+'%';
+  document.getElementById('g-week-bar').style.width=Math.min((weeks/12)*100,100)+'%';
+  document.getElementById('g-week-nums').textContent=weeks+' / 12';
+  document.getElementById('g-week-pct').textContent=Math.round((weeks/12)*100)+'%';
+}
+updateGoals();
+
+// ── RINGS ─────────────────────────────────────────────────────────────────────
+function updateRings(){
+  const C=201;
+  const gymW=Object.values(S.weekDays).filter(v=>v==='gym').length;
+  const runW=Object.values(S.weekDays).filter(v=>v==='run').length;
+  document.getElementById('ring-gym').style.strokeDashoffset=C-(C*Math.min(gymW/2,1));
+  document.getElementById('ring-gym-val').textContent=gymW+'/2';
+  document.getElementById('ring-run').style.strokeDashoffset=runW>=1?0:C;
+  document.getElementById('ring-run-val').textContent=runW+'/1';
+  const sp=Math.min((S.weeklySteps||0)/70000,1);
+  document.getElementById('ring-steps').style.strokeDashoffset=C-(C*sp);
+  document.getElementById('ring-steps-val').textContent=Math.round(sp*100)+'%';
+}
+
+// ── CHART ─────────────────────────────────────────────────────────────────────
+function buildChart(){
+  const container=document.getElementById('session-chart');
+  container.innerHTML='';
+  const weeks=[];
+  for(let w=7;w>=0;w--){
+    const ref=new Date(now); ref.setDate(now.getDate()-(w*7));
+    const wMon=new Date(ref); wMon.setDate(ref.getDate()-((ref.getDay()+6)%7));
+    let gym=0,run=0;
+    for(let d=0;d<7;d++){
+      const dd=new Date(wMon); dd.setDate(wMon.getDate()+d);
+      const k=dd.getFullYear()+'-'+dd.getMonth()+'-'+dd.getDate();
+      if(S.weekDays[k]==='gym'||S.weekDays[k]==='home') gym++;
+      if(S.weekDays[k]==='run') run++;
+    }
+    weeks.push({label:(wMon.getDate()+'/'+(wMon.getMonth()+1)),gym,run});
+  }
+  const maxVal=Math.max(...weeks.map(w=>w.gym+w.run),3);
+  weeks.forEach(w=>{
+    const col=document.createElement('div');
+    col.className='chart-bar-col';
+    const gymH=Math.round((w.gym/maxVal)*70);
+    const runH=Math.round((w.run/maxVal)*70);
+    col.innerHTML=`
+      <div class="chart-bar-val">${w.gym+w.run||''}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;">
+        ${w.run>0?`<div class="chart-bar run filled" style="height:${runH}px;"></div>`:''}
+        ${w.gym>0?`<div class="chart-bar filled" style="height:${gymH}px;"></div>`:''}
+        ${w.gym===0&&w.run===0?`<div class="chart-bar" style="height:4px;"></div>`:''}
+      </div>
+      <div class="chart-bar-label">${w.label}</div>`;
+    container.appendChild(col);
+  });
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+</script>
+</body>
+</html>
